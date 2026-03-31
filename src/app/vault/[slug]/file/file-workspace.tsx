@@ -54,9 +54,29 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
     onError: (e) => toast.error(e.message),
   });
 
+  const remove = api.objects.delete.useMutation({
+    onSuccess: async () => {
+      toast.success("File removed");
+      await utils.objects.list.invalidate({ collectionSlug });
+      router.push(`/vault/${encodeURIComponent(collectionSlug)}`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const handleSave = () => {
     if (!data) return;
     save.mutate({ objectKey, content: text });
+  };
+
+  const handleDelete = () => {
+    if (
+      !confirm(
+        `Delete "${objectKey.split("/").pop() ?? "this file"}"? This cannot be undone.`,
+      )
+    ) {
+      return;
+    }
+    remove.mutate({ objectKey });
   };
 
   const copyValue = async (secretKey: string) => {
@@ -122,7 +142,16 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
               </Button>
             </>
           ) : null}
-          <Button type="button" size="sm" onClick={handleSave} disabled={save.isPending}>
+          <Button
+            type="button"
+            size="sm"
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={save.isPending || remove.isPending}
+          >
+            {remove.isPending ? "Deleting…" : "Delete"}
+          </Button>
+          <Button type="button" size="sm" onClick={handleSave} disabled={save.isPending || remove.isPending}>
             {save.isPending ? "Saving…" : "Save"}
           </Button>
         </div>

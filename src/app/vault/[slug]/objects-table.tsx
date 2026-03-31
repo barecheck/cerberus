@@ -44,7 +44,7 @@ export function ObjectsTable({ collectionSlug }: { collectionSlug: string }) {
               <TableCell>
                 <Link
                   className="font-medium text-primary hover:underline"
-                  href={`/vault/${encodeURIComponent(collectionSlug)}/file?k=${token}`}
+                  href={`/vault/${encodeURIComponent(collectionSlug)}/file/${encodeURIComponent(token)}`}
                 >
                   {row.relativePath}
                 </Link>

@@ -25,13 +25,13 @@ export function NewObjectDialog({ collectionSlug }: { collectionSlug: string }) 
   const utils = api.useUtils();
   const create = api.objects.putByPath.useMutation({
     onSuccess: async (result) => {
-      toast.success("File created");
+      toast.success("File added");
       setOpen(false);
       setRelativePath("");
       setInitialContent("");
       await utils.objects.list.invalidate({ collectionSlug });
       const token = encodeObjectKeyToken(result.objectKey);
-      router.push(`/vault/${encodeURIComponent(collectionSlug)}/file?k=${encodeURIComponent(token)}`);
+      router.push(`/vault/${encodeURIComponent(collectionSlug)}/file/${encodeURIComponent(token)}`);
     },
     onError: (e) => toast.error(e.message),
   });

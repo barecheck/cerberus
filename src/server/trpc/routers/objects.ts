@@ -8,7 +8,7 @@ import {
   collectionPrefix,
   fullObjectKey,
 } from "@/lib/paths";
-import { getObjectBuffer, listObjectsUnderPrefix, putObjectBuffer } from "@/lib/s3";
+import { deleteObjectsKeys, getObjectBuffer, listObjectsUnderPrefix, putObjectBuffer } from "@/lib/s3";
 import { createTRPCRouter, protectedProcedure } from "@/server/trpc/trpc";
 
 const objectKeyInput = z.object({
@@ -102,4 +102,10 @@ export const objectsRouter = createTRPCRouter({
       await putObjectBuffer(key, encrypted, "application/octet-stream");
       return { ok: true as const, objectKey: key };
     }),
+
+  delete: protectedProcedure.input(objectKeyInput).mutation(async ({ input }) => {
+    assertKeyUnderRoot(input.objectKey);
+    await deleteObjectsKeys([input.objectKey]);
+    return { ok: true as const };
+  }),
 });
