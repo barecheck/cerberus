@@ -2,15 +2,25 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { decryptToUtf8 } from "@/lib/crypto";
 import { parseDotenv } from "@/lib/dotenv-parse";
-import { assertKeyUnderRoot } from "@/lib/paths";
+import { assertKeyUnderRoot, assertValidCollectionSlug, splitObjectKeyAfterRoot } from "@/lib/paths";
 import { getObjectBuffer } from "@/lib/s3";
+import { assertRelativePathAllowed, loadCollectionAccessState } from "@/server/access/collections";
 import { createTRPCRouter, protectedProcedure } from "@/server/trpc/trpc";
 
 export const secretsRouter = createTRPCRouter({
   parse: protectedProcedure
     .input(z.object({ objectKey: z.string().min(1) }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       assertKeyUnderRoot(input.objectKey);
+      const { slug } = splitObjectKeyAfterRoot(input.objectKey);
+      assertValidCollectionSlug(slug);
+      const state = await loadCollectionAccessState({
+        userId: ctx.session.user.id,
+        email: ctx.session.user.email,
+        slug,
+      });
+      assertRelativePathAllowed(state);
+
       const body = await getObjectBuffer(input.objectKey);
       let plaintext: string;
       try {
@@ -32,8 +42,17 @@ export const secretsRouter = createTRPCRouter({
         secretKey: z.string().min(1),
       }),
     )
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       assertKeyUnderRoot(input.objectKey);
+      const { slug } = splitObjectKeyAfterRoot(input.objectKey);
+      assertValidCollectionSlug(slug);
+      const state = await loadCollectionAccessState({
+        userId: ctx.session.user.id,
+        email: ctx.session.user.email,
+        slug,
+      });
+      assertRelativePathAllowed(state);
+
       const body = await getObjectBuffer(input.objectKey);
       let plaintext: string;
       try {

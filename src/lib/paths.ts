@@ -41,6 +41,18 @@ export function fullObjectKey(collectionSlug: string, relativePath: string): str
   return `${getRootPrefix()}${collectionSlug}/${relativePath}`;
 }
 
+/** First path segment after root = collection slug; remainder = path within collection. */
+export function splitObjectKeyAfterRoot(objectKey: string): { slug: string; relativePath: string } {
+  assertKeyUnderRoot(objectKey);
+  const root = getRootPrefix();
+  const rest = root ? objectKey.slice(root.length) : objectKey;
+  const slash = rest.indexOf("/");
+  if (slash === -1) {
+    return { slug: rest, relativePath: "" };
+  }
+  return { slug: rest.slice(0, slash), relativePath: rest.slice(slash + 1) };
+}
+
 /** Ensure an arbitrary S3 key is under the configured root prefix (for get by full key). */
 export function assertKeyUnderRoot(objectKey: string) {
   if (!objectKey || objectKey.startsWith("/") || objectKey.includes("..")) {

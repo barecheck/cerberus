@@ -30,6 +30,7 @@ export function CollectionActions({ slug }: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const utils = api.useUtils();
+  const { data: accessMeta } = api.collections.accessMeta.useQuery({ slug });
   const [renameOpen, setRenameOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [newSlug, setNewSlug] = useState(slug);
@@ -65,6 +66,8 @@ export function CollectionActions({ slug }: Props) {
     setNewSlug(slug);
     setRenameOpen(true);
   };
+
+  if (!accessMeta?.canRenameDelete) return null;
 
   return (
     <>

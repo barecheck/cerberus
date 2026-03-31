@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { assertValidCollectionSlug } from "@/lib/paths";
+import { CollectionManageAccess } from "@/app/vault/[slug]/collection-manage-access";
 import { ObjectsTable } from "@/app/vault/[slug]/objects-table";
 import { NewObjectDialog } from "@/app/vault/[slug]/new-object-dialog";
+import { assertValidCollectionSlug } from "@/lib/paths";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -33,7 +34,10 @@ export default async function CollectionPage(props: Props) {
             mode.
           </p>
         </div>
-        <NewObjectDialog collectionSlug={slug} />
+        <div className="flex flex-wrap items-center gap-2">
+          <CollectionManageAccess collectionSlug={slug} />
+          <NewObjectDialog collectionSlug={slug} />
+        </div>
       </div>
       <ObjectsTable collectionSlug={slug} />
     </div>

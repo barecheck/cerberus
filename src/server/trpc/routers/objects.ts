@@ -7,8 +7,10 @@ import {
   assertValidCollectionSlug,
   collectionPrefix,
   fullObjectKey,
+  splitObjectKeyAfterRoot,
 } from "@/lib/paths";
 import { deleteObjectsKeys, getObjectBuffer, listObjectsUnderPrefix, putObjectBuffer } from "@/lib/s3";
+import { assertRelativePathAllowed, loadCollectionAccessState } from "@/server/access/collections";
 import { createTRPCRouter, protectedProcedure } from "@/server/trpc/trpc";
 
 const objectKeyInput = z.object({
@@ -23,9 +25,18 @@ const collectionPathInput = z.object({
 export const objectsRouter = createTRPCRouter({
   list: protectedProcedure
     .input(z.object({ collectionSlug: z.string().min(1) }))
-    .query(async ({ input }) => {
+    .query(async ({ ctx, input }) => {
       assertValidCollectionSlug(input.collectionSlug);
       const prefix = collectionPrefix(input.collectionSlug);
+      const state = await loadCollectionAccessState({
+        userId: ctx.session.user.id,
+        email: ctx.session.user.email,
+        slug: input.collectionSlug,
+      });
+      if (state.kind === "none") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "No access to this collection" });
+      }
+
       const objects = await listObjectsUnderPrefix(prefix);
       return objects.map((o) => ({
         objectKey: o.key,
@@ -36,8 +47,17 @@ export const objectsRouter = createTRPCRouter({
       }));
     }),
 
-  get: protectedProcedure.input(objectKeyInput).query(async ({ input }) => {
+  get: protectedProcedure.input(objectKeyInput).query(async ({ ctx, input }) => {
     assertKeyUnderRoot(input.objectKey);
+    const { slug } = splitObjectKeyAfterRoot(input.objectKey);
+    assertValidCollectionSlug(slug);
+    const state = await loadCollectionAccessState({
+      userId: ctx.session.user.id,
+      email: ctx.session.user.email,
+      slug,
+    });
+    assertRelativePathAllowed(state);
+
     const body = await getObjectBuffer(input.objectKey);
     try {
       const plaintext = decryptToUtf8(body);
@@ -54,8 +74,15 @@ export const objectsRouter = createTRPCRouter({
     }
   }),
 
-  getByPath: protectedProcedure.input(collectionPathInput).query(async ({ input }) => {
+  getByPath: protectedProcedure.input(collectionPathInput).query(async ({ ctx, input }) => {
     const key = fullObjectKey(input.collectionSlug, input.relativePath);
+    const state = await loadCollectionAccessState({
+      userId: ctx.session.user.id,
+      email: ctx.session.user.email,
+      slug: input.collectionSlug,
+    });
+    assertRelativePathAllowed(state);
+
     const body = await getObjectBuffer(key);
     try {
       const plaintext = decryptToUtf8(body);
@@ -79,8 +106,17 @@ export const objectsRouter = createTRPCRouter({
         content: z.string(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       assertKeyUnderRoot(input.objectKey);
+      const { slug } = splitObjectKeyAfterRoot(input.objectKey);
+      assertValidCollectionSlug(slug);
+      const state = await loadCollectionAccessState({
+        userId: ctx.session.user.id,
+        email: ctx.session.user.email,
+        slug,
+      });
+      assertRelativePathAllowed(state);
+
       const encrypted = encryptUtf8(input.content);
       await putObjectBuffer(input.objectKey, encrypted, "application/octet-stream");
       return { ok: true as const };
@@ -94,17 +130,33 @@ export const objectsRouter = createTRPCRouter({
         content: z.string(),
       }),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       assertValidCollectionSlug(input.collectionSlug);
       assertSafeRelativePath(input.relativePath);
       const key = fullObjectKey(input.collectionSlug, input.relativePath);
+      const state = await loadCollectionAccessState({
+        userId: ctx.session.user.id,
+        email: ctx.session.user.email,
+        slug: input.collectionSlug,
+      });
+      assertRelativePathAllowed(state);
+
       const encrypted = encryptUtf8(input.content);
       await putObjectBuffer(key, encrypted, "application/octet-stream");
       return { ok: true as const, objectKey: key };
     }),
 
-  delete: protectedProcedure.input(objectKeyInput).mutation(async ({ input }) => {
+  delete: protectedProcedure.input(objectKeyInput).mutation(async ({ ctx, input }) => {
     assertKeyUnderRoot(input.objectKey);
+    const { slug } = splitObjectKeyAfterRoot(input.objectKey);
+    assertValidCollectionSlug(slug);
+    const state = await loadCollectionAccessState({
+      userId: ctx.session.user.id,
+      email: ctx.session.user.email,
+      slug,
+    });
+    assertRelativePathAllowed(state);
+
     await deleteObjectsKeys([input.objectKey]);
     return { ok: true as const };
   }),

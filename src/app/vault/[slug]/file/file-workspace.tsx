@@ -4,7 +4,16 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -105,59 +114,23 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <Link className="hover:text-foreground" href="/vault">
-              Collections
-            </Link>
-            <span>/</span>
-            <Link className="hover:text-foreground" href={`/vault/${encodeURIComponent(collectionSlug)}`}>
-              {collectionSlug}
-            </Link>
-          </div>
-          <h1 className="mt-2 text-xl font-semibold tracking-tight break-all">
-            {objectKey.split("/").pop()}
-          </h1>
-          <p className="text-muted-foreground mt-1 max-w-prose text-xs break-all">{objectKey}</p>
+      <div>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <Link className="hover:text-foreground" href="/vault">
+            Collections
+          </Link>
+          <span>/</span>
+          <Link className="hover:text-foreground" href={`/vault/${encodeURIComponent(collectionSlug)}`}>
+            {collectionSlug}
+          </Link>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {isDotenv ? (
-            <>
-              <Button
-                type="button"
-                variant={mode === "raw" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setMode("raw")}
-              >
-                Raw
-              </Button>
-              <Button
-                type="button"
-                variant={mode === "keys" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setMode("keys")}
-              >
-                Keys
-              </Button>
-            </>
-          ) : null}
-          <Button
-            type="button"
-            size="sm"
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={save.isPending || remove.isPending}
-          >
-            {remove.isPending ? "Deleting…" : "Delete"}
-          </Button>
-          <Button type="button" size="sm" onClick={handleSave} disabled={save.isPending || remove.isPending}>
-            {save.isPending ? "Saving…" : "Save"}
-          </Button>
-        </div>
+        <h1 className="mt-2 text-xl font-semibold tracking-tight break-all">
+          {objectKey.split("/").pop()}
+        </h1>
+        <p className="text-muted-foreground mt-1 max-w-prose text-xs break-all">{objectKey}</p>
       </div>
 
-      {mode === "raw" || !isDotenv ? (
+      {!isDotenv ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Editor</CardTitle>
@@ -170,15 +143,81 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
               onChange={(e) => setDraft(e.target.value)}
             />
           </CardContent>
+          <CardFooter className="flex flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={save.isPending || remove.isPending}
+            >
+              {remove.isPending ? "Deleting…" : "Delete"}
+            </Button>
+            <Button type="button" size="sm" onClick={handleSave} disabled={save.isPending || remove.isPending}>
+              {save.isPending ? "Saving…" : "Save"}
+            </Button>
+          </CardFooter>
         </Card>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Dotenv keys</CardTitle>
-            <CardDescription>Parsed from decrypted content. Edit raw text to change keys.</CardDescription>
+            <CardTitle className="text-base">
+              {mode === "keys" ? "Dotenv keys" : "Editor"}
+            </CardTitle>
+            <CardDescription>
+              {mode === "keys"
+                ? "Parsed from decrypted content. Edit raw text to change keys."
+                : "Content is encrypted with the server master key before leaving the app."}
+            </CardDescription>
+            <CardAction>
+              <div
+                className="flex w-fit shrink-0 rounded-lg border bg-muted/50 p-0.5"
+                role="tablist"
+                aria-label="View mode"
+              >
+                <Button
+                  type="button"
+                  variant={mode === "raw" ? "outline" : "ghost"}
+                  size="sm"
+                  className={cn(
+                    "h-7 rounded-md px-3 shadow-none",
+                    mode === "raw" &&
+                      "font-semibold shadow-sm ring-1 ring-primary/25 dark:ring-primary/40",
+                    mode !== "raw" && "text-muted-foreground",
+                  )}
+                  onClick={() => setMode("raw")}
+                  role="tab"
+                  aria-selected={mode === "raw"}
+                >
+                  Raw
+                </Button>
+                <Button
+                  type="button"
+                  variant={mode === "keys" ? "outline" : "ghost"}
+                  size="sm"
+                  className={cn(
+                    "h-7 rounded-md px-3 shadow-none",
+                    mode === "keys" &&
+                      "font-semibold shadow-sm ring-1 ring-primary/25 dark:ring-primary/40",
+                    mode !== "keys" && "text-muted-foreground",
+                  )}
+                  onClick={() => setMode("keys")}
+                  role="tab"
+                  aria-selected={mode === "keys"}
+                >
+                  Keys
+                </Button>
+              </div>
+            </CardAction>
           </CardHeader>
           <CardContent>
-            {secretsQuery.isLoading ? (
+            {mode === "raw" ? (
+              <Textarea
+                className="min-h-[320px] font-mono text-sm"
+                value={text}
+                onChange={(e) => setDraft(e.target.value)}
+              />
+            ) : secretsQuery.isLoading ? (
               <p className="text-muted-foreground text-sm">Parsing…</p>
             ) : secretsQuery.error ? (
               <p className="text-destructive text-sm">{secretsQuery.error.message}</p>
@@ -209,6 +248,20 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
               </Table>
             )}
           </CardContent>
+          <CardFooter className="flex flex-wrap justify-end gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={save.isPending || remove.isPending}
+            >
+              {remove.isPending ? "Deleting…" : "Delete"}
+            </Button>
+            <Button type="button" size="sm" onClick={handleSave} disabled={save.isPending || remove.isPending}>
+              {save.isPending ? "Saving…" : "Save"}
+            </Button>
+          </CardFooter>
         </Card>
       )}
     </div>

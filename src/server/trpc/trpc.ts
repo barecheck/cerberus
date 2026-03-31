@@ -33,3 +33,10 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
     },
   });
 });
+
+export const ownerProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (!ctx.session.user.isOwner) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Owners only" });
+  }
+  return next({ ctx });
+});

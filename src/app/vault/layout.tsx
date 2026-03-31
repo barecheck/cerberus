@@ -11,11 +11,16 @@ export default async function VaultLayout({ children }: { children: React.ReactN
     <div className="flex min-h-screen flex-col">
       <header className="border-b bg-card px-4 py-3">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 flex-1 items-center gap-3">
             <Link href="/vault" className="font-semibold tracking-tight">
               Cerberus
             </Link>
-            <span className="text-muted-foreground text-sm truncate">{session.user.email}</span>
+            <span className="text-muted-foreground min-w-0 truncate text-sm">{session.user.email}</span>
+            {session.user.isOwner ? (
+              <span className="border-border bg-muted text-muted-foreground shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium">
+                Owner
+              </span>
+            ) : null}
           </div>
           <form
             action={async () => {
