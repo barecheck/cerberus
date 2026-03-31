@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CollectionAccessTokens } from "@/app/vault/[slug]/collection-access-tokens";
 import { CollectionManageAccess } from "@/app/vault/[slug]/collection-manage-access";
 import { ObjectsTable } from "@/app/vault/[slug]/objects-table";
 import { NewObjectDialog } from "@/app/vault/[slug]/new-object-dialog";
@@ -36,6 +37,7 @@ export default async function CollectionPage(props: Props) {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <CollectionManageAccess collectionSlug={slug} />
+          <CollectionAccessTokens collectionSlug={slug} />
           <NewObjectDialog collectionSlug={slug} />
         </div>
       </div>

@@ -1,0 +1,34 @@
+name: Cerberus Pull Secret
+description: Fetch a decrypted file or .env keys from Cerberus in CI
+branding:
+  icon: lock
+  color: gray-dark
+inputs:
+  hostname:
+    description: Cerberus app origin (e.g. https://vault.example.com)
+    required: true
+  api-key:
+    description: CI access token (Bearer); use GitHub Secrets
+    required: true
+  secret:
+    description: "Path as collection/relative/path (e.g. my-team/prod/.env)"
+    required: true
+  output-path:
+    description: Where to write the file when mode is export
+    required: false
+  mode:
+    description: export (write file) or env (set environment variables)
+    required: false
+    default: export
+  pick:
+    description: |
+      mode=env only, required. Keys to load from a .env file: use a block scalar (|) with standard YAML list lines ("- KEY") or comma-separated names.
+      For a raw (non-.env) file, one env name; exported name is env_prefix + that name. (with.* values are strings; a nested YAML list under pick is not valid for GitHub Actions.)
+    required: false
+  env_prefix:
+    description: Prefix prepended to every exported environment variable name (mode=env).
+    required: false
+    default: ""
+runs:
+  using: node20
+  main: dist/github-action/index.js

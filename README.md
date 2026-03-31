@@ -24,6 +24,72 @@ Full documentation lives in [`docs/`](docs/):
 | [storage-and-encryption.md](docs/storage-and-encryption.md) | S3 layout, envelope format, raw vs dotenv |
 | [api-trpc.md](docs/api-trpc.md) | tRPC routers and procedures |
 | [cli.md](docs/cli.md) | `pull-secret` usage and safety notes |
+| [action.yml](action.yml) | GitHub Action inputs (CI pull) |
+
+## GitHub Action
+
+Pull decrypted files or `.env` keys in workflows using the action in this repo. Create an **access token** in the collection’s **Access tokens** dialog, add it as a repository secret (for example `CERBERUS_TOKEN`). The `secret` input is always `collection-slug/path/under/collection` (same path you see in the vault, not the raw S3 key).
+
+Examples use `uses: ./` after a checkout of this repository; for a published composite action, replace with `uses: your-org/cerberus@v1` (or the path that hosts `action.yml` and `dist/github-action`).
+
+**Export a file** (`mode: export`, default): writes decrypted content to `output-path`.
+
+```yaml
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./
+        with:
+          hostname: https://vault.example.com
+          api-key: ${{ secrets.CERBERUS_TOKEN }}
+          secret: my-team/prod/app.env
+          output-path: ${{ github.workspace }}/.env.ci
+
+      - run: wc -l .env.ci
+        working-directory: ${{ github.workspace }}
+```
+
+**Export environment variables** (`mode: env`): sets variables for the current step and appends to `GITHUB_ENV` so **later steps** in the same job can read them. Each `with` input is a **string**, so embed a normal YAML list using a **block scalar** (`|`) and one `- key` per line (the same syntax as `pick:\n  - …` elsewhere in YAML). Optional `env_prefix` is prepended to every exported name (e.g. `CERBERUS_` → `CERBERUS_API_KEY`). You can also use a **comma-separated** line instead of a block.
+
+```yaml
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./
+        with:
+          hostname: https://vault.example.com
+          api-key: ${{ secrets.CERBERUS_TOKEN }}
+          secret: my-team/prod/.env
+          mode: env
+          env_prefix: CERBERUS_
+          pick: |
+            - API_KEY
+            - DATABASE_URL
+
+      - name: Next step sees prefixed names
+        run: node -e 'console.log(process.env.CERBERUS_API_KEY ? "ok" : "missing")'
+```
+
+For a **non-`.env` file**, `pick` must be a **single** name; the file contents are exported as `env_prefix` + that name.
+
+```yaml
+      - uses: ./
+        with:
+          hostname: https://vault.example.com
+          api-key: ${{ secrets.CERBERUS_TOKEN }}
+          secret: my-team/certs/ca.pem
+          mode: env
+          env_prefix: TLS_
+          pick: CA_BUNDLE
+```
+
+Build the bundled entrypoint after changing action source: `npm run build:github-action`.
 
 ## Prerequisites
 

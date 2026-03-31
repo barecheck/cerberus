@@ -15,19 +15,45 @@ model User {
   email              String             @unique
   createdCollections Collection[]       @relation("CreatedCollections")
   collectionAccess   CollectionAccess[]
+  accessTokens       AccessToken[]
 
   @@map("users")
 }
 
 model Collection {
-  id           String             @id @default(cuid())
-  slug         String             @unique
-  createdById  String?            @map("created_by_id")
-  createdBy    User?              @relation("CreatedCollections", fields: [createdById], references: [id], onDelete: SetNull)
-  createdAt    DateTime           @default(now()) @map("created_at")
-  accessGrants CollectionAccess[]
+  id                     String                    @id @default(cuid())
+  slug                   String                    @unique
+  createdById            String?                   @map("created_by_id")
+  createdBy              User?                     @relation("CreatedCollections", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt              DateTime                  @default(now()) @map("created_at")
+  accessGrants           CollectionAccess[]
+  accessTokenCollections AccessTokenCollection[]
 
   @@map("collections")
+}
+
+model AccessToken {
+  id              String                    @id @default(cuid())
+  name            String?
+  tokenLookup     String                    @unique @map("token_lookup")
+  tokenEncrypted  Bytes                     @map("token_encrypted")
+  tokenLast4      String                    @map("token_last4")
+  createdById     String                    @map("created_by_id")
+  createdBy       User                      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt       DateTime                  @default(now()) @map("created_at")
+  collections     AccessTokenCollection[]
+
+  @@map("access_tokens")
+}
+
+model AccessTokenCollection {
+  accessTokenId String        @map("access_token_id")
+  collectionId  String        @map("collection_id")
+  accessToken   AccessToken   @relation(fields: [accessTokenId], references: [id], onDelete: Cascade)
+  collection    Collection    @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([accessTokenId, collectionId])
+  @@map("access_token_collections")
 }
 
 model CollectionAccess {

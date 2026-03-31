@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
-    "pull-secret": "node scripts/pull-secret.mjs"
+    "pull-secret": "node scripts/pull-secret.mjs",
+    "build:github-action": "ncc build src/github-action/index.ts -o dist/github-action --source-map --license licenses.txt"
   },
   "bin": {
     "cerberus-pull-secret": "./scripts/pull-secret.mjs"
@@ -43,15 +45,18 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@actions/core": "^3.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vercel/ncc": "^0.38.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "prisma": "^7.6.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.2"
   }
 }
