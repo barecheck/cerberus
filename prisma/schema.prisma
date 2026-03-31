@@ -13,62 +13,30 @@ model User {
   id                 String             @id @default(cuid())
   name               String?
   email              String             @unique
-  emailVerified      DateTime?
-  image              String?
-  accounts           Account[]
-  sessions           Session[]
   createdCollections Collection[]       @relation("CreatedCollections")
   collectionAccess   CollectionAccess[]
+
+  @@map("users")
 }
 
 model Collection {
   id           String             @id @default(cuid())
   slug         String             @unique
-  createdById  String?
+  createdById  String?            @map("created_by_id")
   createdBy    User?              @relation("CreatedCollections", fields: [createdById], references: [id], onDelete: SetNull)
-  createdAt    DateTime           @default(now())
+  createdAt    DateTime           @default(now()) @map("created_at")
   accessGrants CollectionAccess[]
+
+  @@map("collections")
 }
 
 model CollectionAccess {
   id           String     @id @default(cuid())
-  collectionId String
+  collectionId String     @map("collection_id")
   collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  userId       String
+  userId       String     @map("user_id")
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([collectionId, userId])
-}
-
-model Account {
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([provider, providerAccountId])
-}
-
-model Session {
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
-
-  @@id([identifier, token])
+  @@map("collection_access")
 }

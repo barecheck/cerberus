@@ -27,7 +27,7 @@ export function CollectionManageAccess({ collectionSlug }: Props) {
   );
   const usersQuery = api.collections.listDomainUsers.useQuery(undefined, {
     enabled: meta?.canManageAccess === true,
-  });
+});
 
   const [open, setOpen] = useState(false);
   const [grantEmail, setGrantEmail] = useState("");
@@ -62,7 +62,7 @@ export function CollectionManageAccess({ collectionSlug }: Props) {
           <DialogTitle>Collection access</DialogTitle>
           <DialogDescription>
             Share this entire collection with someone in your domain by email. If they have not signed in
-            yet, an account record is created and they will have access as soon as they log in with Google.
+            yet, a user record is created and they will have access as soon as they log in with Google.
           </DialogDescription>
         </DialogHeader>
 
