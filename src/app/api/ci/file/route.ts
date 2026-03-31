@@ -18,7 +18,11 @@ function parseBearer(req: NextRequest): string | null {
 }
 
 function isNotFoundError(err: unknown): boolean {
-  const e = err as { name?: string; Code?: string; $metadata?: { httpStatusCode?: number } };
+  const e = err as {
+    name?: string;
+    Code?: string;
+    $metadata?: { httpStatusCode?: number };
+  };
   return (
     e.name === "NoSuchKey" ||
     e.Code === "NoSuchKey" ||
@@ -31,7 +35,10 @@ export async function GET(req: NextRequest) {
   try {
     getBucket();
   } catch {
-    return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Server misconfigured" },
+      { status: 500 },
+    );
   }
 
   const bearer = parseBearer(req);

@@ -5,14 +5,18 @@ import { appendGithubEnvVar } from "./github-env";
 import { normalizeHostname, resolveEnvAssignments } from "./pick-env";
 
 async function run(): Promise<void> {
-  const hostname = normalizeHostname(core.getInput("hostname", { required: true }));
+  const hostname = normalizeHostname(
+    core.getInput("hostname", { required: true }),
+  );
   const apiKey = core.getInput("api-key", { required: true });
   const secret = core.getInput("secret", { required: true });
   const mode = (core.getInput("mode") || "export").toLowerCase();
   const outputPath = core.getInput("output-path");
   const pickLines = core.getMultilineInput("pick");
   const pick =
-    pickLines.length > 0 ? pickLines.join("\n") : core.getInput("pick")?.trim() || undefined;
+    pickLines.length > 0
+      ? pickLines.join("\n")
+      : core.getInput("pick")?.trim() || undefined;
   const envPrefix = core.getInput("env_prefix") ?? "";
 
   const url = new URL("/api/ci/file", hostname);
@@ -24,7 +28,9 @@ async function run(): Promise<void> {
 
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
-    throw new Error(`Cerberus request failed: HTTP ${res.status}${errText ? ` — ${errText.slice(0, 200)}` : ""}`);
+    throw new Error(
+      `Cerberus request failed: HTTP ${res.status}${errText ? ` — ${errText.slice(0, 200)}` : ""}`,
+    );
   }
 
   let data: { content?: string };
@@ -70,7 +76,9 @@ async function run(): Promise<void> {
   }
 
   if (!githubEnv) {
-    core.warning("GITHUB_ENV is not set; variables are set for this step only. Use in a normal job step on GitHub-hosted runners for persistence across steps.");
+    core.warning(
+      "GITHUB_ENV is not set; variables are set for this step only. Use in a normal job step on GitHub-hosted runners for persistence across steps.",
+    );
   }
 }
 

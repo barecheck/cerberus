@@ -9,19 +9,23 @@ export function CollectionsList() {
   const { data, isLoading, error } = api.collections.list.useQuery();
 
   if (isLoading) {
-    return <p className="text-muted-foreground text-sm">Loading collections…</p>;
+    return (
+      <p className="text-muted-foreground text-sm">Loading collections…</p>
+    );
   }
   if (error) {
     return (
       <p className="text-destructive text-sm">
-        {error.message || "Failed to load collections. Check AWS and S3 configuration."}
+        {error.message ||
+          "Failed to load collections. Check AWS and S3 configuration."}
       </p>
     );
   }
   if (!data?.length) {
     return (
       <p className="text-muted-foreground text-sm">
-        No collections yet. Create one above or add a folder under your S3 root prefix in the console.
+        No collections yet. Create one above or add a folder under your S3 root
+        prefix in the console.
       </p>
     );
   }

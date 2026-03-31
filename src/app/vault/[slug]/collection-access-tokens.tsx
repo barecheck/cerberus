@@ -36,7 +36,9 @@ export function CollectionAccessTokens({ collectionSlug }: Props) {
 
   const create = api.accessTokens.createForCollectionSlug.useMutation({
     onSuccess: async (data) => {
-      toast.success("Token created — copy it now; you can reveal it later if you’re an owner or creator.");
+      toast.success(
+        "Token created — copy it now; you can reveal it later if you’re an owner or creator.",
+      );
       setNewTokenPlain(data.token);
       setName("");
       await utils.accessTokens.list.invalidate({ slug: collectionSlug });
@@ -80,22 +82,31 @@ export function CollectionAccessTokens({ collectionSlug }: Props) {
           }
         }}
       >
-        <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setOpen(true)}
+        >
           Access tokens
         </Button>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Automations / API tokens</DialogTitle>
             <DialogDescription>
-              Tokens can read decrypted files in this collection via the HTTP API (e.g. GitHub Actions). Store the
-              value in your CI secrets.
+              Tokens can read decrypted files in this collection via the HTTP
+              API (e.g. GitHub Actions). Store the value in your CI secrets.
             </DialogDescription>
           </DialogHeader>
 
           {newTokenPlain ? (
             <div className="grid gap-3 py-2">
-              <p className="text-destructive text-sm font-medium">Copy this token now.</p>
-              <code className="bg-muted max-h-32 overflow-auto break-all rounded-md p-3 text-xs">{newTokenPlain}</code>
+              <p className="text-destructive text-sm font-medium">
+                Copy this token now.
+              </p>
+              <code className="bg-muted max-h-32 overflow-auto break-all rounded-md p-3 text-xs">
+                {newTokenPlain}
+              </code>
               <DialogFooter>
                 <Button
                   type="button"
@@ -110,7 +121,11 @@ export function CollectionAccessTokens({ collectionSlug }: Props) {
                 >
                   Copy token
                 </Button>
-                <Button type="button" variant="secondary" onClick={() => setNewTokenPlain(null)}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setNewTokenPlain(null)}
+                >
                   Done
                 </Button>
               </DialogFooter>
@@ -127,7 +142,9 @@ export function CollectionAccessTokens({ collectionSlug }: Props) {
               }}
             >
               <div className="grid gap-2">
-                <Label htmlFor={`access-token-name-${collectionSlug}`}>Label (optional)</Label>
+                <Label htmlFor={`access-token-name-${collectionSlug}`}>
+                  Label (optional)
+                </Label>
                 <Input
                   id={`access-token-name-${collectionSlug}`}
                   value={name}
@@ -160,8 +177,12 @@ export function CollectionAccessTokens({ collectionSlug }: Props) {
                     className="bg-muted/50 flex flex-col gap-2 rounded-md px-3 py-2 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="min-w-0">
-                      <div className="truncate font-medium">{t.name ?? "Unnamed token"}</div>
-                      <code className="text-muted-foreground text-xs">{t.displayToken}</code>
+                      <div className="truncate font-medium">
+                        {t.name ?? "Unnamed token"}
+                      </div>
+                      <code className="text-muted-foreground text-xs">
+                        {t.displayToken}
+                      </code>
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
                       {t.canManage ? (
@@ -186,7 +207,11 @@ export function CollectionAccessTokens({ collectionSlug }: Props) {
                             className="text-destructive hover:text-destructive"
                             disabled={revoke.isPending}
                             onClick={() => {
-                              if (confirm("Revoke this token? CI jobs using it will fail to authenticate.")) {
+                              if (
+                                confirm(
+                                  "Revoke this token? CI jobs using it will fail to authenticate.",
+                                )
+                              ) {
                                 revoke.mutate({ id: t.id });
                               }
                             }}
@@ -219,7 +244,8 @@ export function CollectionAccessTokens({ collectionSlug }: Props) {
           <DialogHeader>
             <DialogTitle>Reveal token</DialogTitle>
             <DialogDescription>
-              Do not paste this into logs or public issues. Use your CI secret store (e.g. GitHub Secrets).
+              Do not paste this into logs or public issues. Use your CI secret
+              store (e.g. GitHub Secrets).
             </DialogDescription>
           </DialogHeader>
           {reveal.isPending && !revealed ? (
@@ -227,7 +253,9 @@ export function CollectionAccessTokens({ collectionSlug }: Props) {
           ) : reveal.isError ? (
             <p className="text-destructive text-sm">Could not reveal token.</p>
           ) : revealed ? (
-            <code className="bg-muted max-h-40 overflow-auto break-all rounded-md p-3 text-xs">{revealed}</code>
+            <code className="bg-muted max-h-40 overflow-auto break-all rounded-md p-3 text-xs">
+              {revealed}
+            </code>
           ) : null}
           <DialogFooter className="gap-2 sm:justify-start">
             {revealed ? (
@@ -245,7 +273,11 @@ export function CollectionAccessTokens({ collectionSlug }: Props) {
                 Copy
               </Button>
             ) : null}
-            <Button type="button" variant="secondary" onClick={() => setRevealOpen(false)}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setRevealOpen(false)}
+            >
               Close
             </Button>
           </DialogFooter>

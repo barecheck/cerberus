@@ -19,7 +19,9 @@ type Props = { collectionSlug: string };
 
 export function CollectionManageAccess({ collectionSlug }: Props) {
   const utils = api.useUtils();
-  const { data: meta } = api.collections.accessMeta.useQuery({ slug: collectionSlug });
+  const { data: meta } = api.collections.accessMeta.useQuery({
+    slug: collectionSlug,
+  });
 
   const grantsQuery = api.collections.listGrants.useQuery(
     { slug: collectionSlug },
@@ -27,7 +29,7 @@ export function CollectionManageAccess({ collectionSlug }: Props) {
   );
   const usersQuery = api.collections.listDomainUsers.useQuery(undefined, {
     enabled: meta?.canManageAccess === true,
-});
+  });
 
   const [open, setOpen] = useState(false);
   const [grantEmail, setGrantEmail] = useState("");
@@ -54,15 +56,21 @@ export function CollectionManageAccess({ collectionSlug }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button type="button" variant="outline" size="sm" onClick={() => setOpen(true)}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen(true)}
+      >
         Manage access
       </Button>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Collection access</DialogTitle>
           <DialogDescription>
-            Share this entire collection with someone in your domain by email. If they have not signed in
-            yet, a user record is created and they will have access as soon as they log in with Google.
+            Share this entire collection with someone in your domain by email.
+            If they have not signed in yet, a user record is created and they
+            will have access as soon as they log in with Google.
           </DialogDescription>
         </DialogHeader>
 
@@ -111,7 +119,9 @@ export function CollectionManageAccess({ collectionSlug }: Props) {
           {grantsQuery.isLoading ? (
             <p className="text-muted-foreground text-sm">Loading…</p>
           ) : !grantsQuery.data?.length ? (
-            <p className="text-muted-foreground text-sm">No shares yet (creator and owners still have access).</p>
+            <p className="text-muted-foreground text-sm">
+              No shares yet (creator and owners still have access).
+            </p>
           ) : (
             <ul className="flex max-h-48 flex-col gap-2 overflow-y-auto text-sm">
               {grantsQuery.data.map((g) => (
@@ -119,7 +129,9 @@ export function CollectionManageAccess({ collectionSlug }: Props) {
                   key={g.userId}
                   className="bg-muted/50 flex flex-wrap items-center justify-between gap-2 rounded-md px-3 py-2"
                 >
-                  <span className="min-w-0 truncate font-medium">{g.email}</span>
+                  <span className="min-w-0 truncate font-medium">
+                    {g.email}
+                  </span>
                   <Button
                     type="button"
                     variant="ghost"
@@ -127,7 +139,10 @@ export function CollectionManageAccess({ collectionSlug }: Props) {
                     className="text-destructive hover:text-destructive shrink-0"
                     disabled={revokeGrant.isPending}
                     onClick={() =>
-                      revokeGrant.mutate({ slug: collectionSlug, userEmail: g.email })
+                      revokeGrant.mutate({
+                        slug: collectionSlug,
+                        userEmail: g.email,
+                      })
                     }
                   >
                     Revoke

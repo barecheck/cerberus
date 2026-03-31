@@ -5,7 +5,12 @@ import { appendGithubEnvVar } from "./github-env";
 
 describe("appendGithubEnvVar", () => {
   it("writes heredoc format for multiline values", async () => {
-    const dir = join(process.cwd(), "node_modules", ".cache", "cerberus-test-env");
+    const dir = join(
+      process.cwd(),
+      "node_modules",
+      ".cache",
+      "cerberus-test-env",
+    );
     const p = join(dir, "github-env-test");
     await rm(dir, { recursive: true }).catch(() => {});
     await mkdir(dir, { recursive: true });

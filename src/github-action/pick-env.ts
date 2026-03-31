@@ -53,7 +53,9 @@ export function resolveEnvAssignments(params: {
       );
     }
     if (keys.length > 1) {
-      throw new Error("For non-.env files, pick must contain exactly one env name");
+      throw new Error(
+        "For non-.env files, pick must contain exactly one env name",
+      );
     }
     const logical = keys[0];
     const name = exportName(logical, envPrefix);

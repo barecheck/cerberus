@@ -5,7 +5,10 @@ import { notFound, redirect } from "next/navigation";
 
 type Props = { children: React.ReactNode; params: Promise<{ slug: string }> };
 
-export default async function VaultCollectionLayout({ children, params }: Props) {
+export default async function VaultCollectionLayout({
+  children,
+  params,
+}: Props) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 

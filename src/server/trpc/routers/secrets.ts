@@ -2,9 +2,16 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { decryptToUtf8 } from "@/lib/crypto";
 import { parseDotenv } from "@/lib/dotenv-parse";
-import { assertKeyUnderRoot, assertValidCollectionSlug, splitObjectKeyAfterRoot } from "@/lib/paths";
+import {
+  assertKeyUnderRoot,
+  assertValidCollectionSlug,
+  splitObjectKeyAfterRoot,
+} from "@/lib/paths";
 import { getObjectBuffer } from "@/lib/s3";
-import { assertRelativePathAllowed, loadCollectionAccessState } from "@/server/access/collections";
+import {
+  assertRelativePathAllowed,
+  loadCollectionAccessState,
+} from "@/server/access/collections";
 import { createTRPCRouter, protectedProcedure } from "@/server/trpc/trpc";
 
 export const secretsRouter = createTRPCRouter({
@@ -71,6 +78,10 @@ export const secretsRouter = createTRPCRouter({
           message: `Key not found: ${input.secretKey}`,
         });
       }
-      return { objectKey: input.objectKey, secretKey: input.secretKey, value: hit.value };
+      return {
+        objectKey: input.objectKey,
+        secretKey: input.secretKey,
+        value: hit.value,
+      };
     }),
 });

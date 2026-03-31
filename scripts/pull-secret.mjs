@@ -38,7 +38,8 @@ Options:
 }
 
 function getEncryptionKey(raw) {
-  if (!raw?.trim()) throw new Error("ENCRYPTION_KEY or --encryption-key is required");
+  if (!raw?.trim())
+    throw new Error("ENCRYPTION_KEY or --encryption-key is required");
   const trimmed = raw.trim();
   if (trimmed.length === 64 && /^[0-9a-fA-F]+$/.test(trimmed)) {
     return Buffer.from(trimmed, "hex");
@@ -74,7 +75,10 @@ function decryptToUtf8(blob, key) {
   const tag = blob.subarray(tagStart);
   const decipher = createDecipheriv("aes-256-gcm", key, iv);
   decipher.setAuthTag(tag);
-  return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
+  return Buffer.concat([
+    decipher.update(ciphertext),
+    decipher.final(),
+  ]).toString("utf8");
 }
 
 function parseDotenv(content) {

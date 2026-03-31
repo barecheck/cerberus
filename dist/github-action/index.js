@@ -31146,7 +31146,9 @@ async function run() {
     const mode = (getInput("mode") || "export").toLowerCase();
     const outputPath = getInput("output-path");
     const pickLines = getMultilineInput("pick");
-    const pick = pickLines.length > 0 ? pickLines.join("\n") : ((_a = getInput("pick")) === null || _a === void 0 ? void 0 : _a.trim()) || undefined;
+    const pick = pickLines.length > 0
+        ? pickLines.join("\n")
+        : ((_a = getInput("pick")) === null || _a === void 0 ? void 0 : _a.trim()) || undefined;
     const envPrefix = (_b = getInput("env_prefix")) !== null && _b !== void 0 ? _b : "";
     const url = new URL("/api/ci/file", hostname);
     url.searchParams.set("secret", secret);

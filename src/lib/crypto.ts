@@ -1,4 +1,9 @@
-import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  randomBytes,
+  timingSafeEqual,
+} from "node:crypto";
 
 const MAGIC = Buffer.from("CRB1", "utf8");
 const VERSION = 1;
@@ -32,7 +37,10 @@ export function encryptUtf8(plaintext: string): Buffer {
   const key = getEncryptionKey();
   const iv = randomBytes(IV_LEN);
   const cipher = createCipheriv("aes-256-gcm", key, iv);
-  const ciphertext = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  const ciphertext = Buffer.concat([
+    cipher.update(plaintext, "utf8"),
+    cipher.final(),
+  ]);
   const tag = cipher.getAuthTag();
   return Buffer.concat([MAGIC, Buffer.from([VERSION]), iv, ciphertext, tag]);
 }
@@ -56,5 +64,8 @@ export function decryptToUtf8(blob: Buffer): string {
   const tag = blob.subarray(tagStart);
   const decipher = createDecipheriv("aes-256-gcm", key, iv);
   decipher.setAuthTag(tag);
-  return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
+  return Buffer.concat([
+    decipher.update(ciphertext),
+    decipher.final(),
+  ]).toString("utf8");
 }

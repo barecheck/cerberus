@@ -3,7 +3,11 @@ import { auth, signOut } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { redirect } from "next/navigation";
 
-export default async function VaultLayout({ children }: { children: React.ReactNode }) {
+export default async function VaultLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const session = await auth();
   if (!session?.user) redirect("/login");
 
@@ -15,7 +19,9 @@ export default async function VaultLayout({ children }: { children: React.ReactN
             <Link href="/vault" className="font-semibold tracking-tight">
               Cerberus
             </Link>
-            <span className="text-muted-foreground min-w-0 truncate text-sm">{session.user.email}</span>
+            <span className="text-muted-foreground min-w-0 truncate text-sm">
+              {session.user.email}
+            </span>
             {session.user.isOwner ? (
               <span className="border-border bg-muted text-muted-foreground shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium">
                 Owner
@@ -34,7 +40,9 @@ export default async function VaultLayout({ children }: { children: React.ReactN
           </form>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 p-4 md:p-6">{children}</main>
+      <main className="mx-auto w-full max-w-5xl flex-1 p-4 md:p-6">
+        {children}
+      </main>
     </div>
   );
 }

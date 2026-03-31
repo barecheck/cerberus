@@ -37,7 +37,9 @@ export function FileWorkspace(props: Props) {
 
 function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
   const router = useRouter();
-  const { data, isLoading, error, refetch } = api.objects.get.useQuery({ objectKey });
+  const { data, isLoading, error, refetch } = api.objects.get.useQuery({
+    objectKey,
+  });
   const [draft, setDraft] = useState<string | undefined>(undefined);
   const [mode, setMode] = useState<"raw" | "keys">("raw");
 
@@ -47,7 +49,10 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
   );
 
   const text = draft ?? data?.plaintext ?? "";
-  const keyEntries = useMemo(() => (isDotenv ? parseDotenv(text) : []), [isDotenv, text]);
+  const keyEntries = useMemo(
+    () => (isDotenv ? parseDotenv(text) : []),
+    [isDotenv, text],
+  );
   const utils = api.useUtils();
   const save = api.objects.put.useMutation({
     onSuccess: async () => {
@@ -95,7 +100,12 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
   };
 
   const removeKey = (secretKey: string) => {
-    if (!confirm(`Remove "${secretKey}" from this file? Save to persist the change.`)) return;
+    if (
+      !confirm(
+        `Remove "${secretKey}" from this file? Save to persist the change.`,
+      )
+    )
+      return;
     setDraft(removeDotenvKey(text, secretKey));
   };
 
@@ -105,7 +115,9 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
   if (error || !data) {
     return (
       <div className="space-y-3">
-        <p className="text-destructive text-sm">{error?.message ?? "Not found"}</p>
+        <p className="text-destructive text-sm">
+          {error?.message ?? "Not found"}
+        </p>
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Back
         </Button>
@@ -121,21 +133,29 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
             Collections
           </Link>
           <span>/</span>
-          <Link className="hover:text-foreground" href={`/vault/${encodeURIComponent(collectionSlug)}`}>
+          <Link
+            className="hover:text-foreground"
+            href={`/vault/${encodeURIComponent(collectionSlug)}`}
+          >
             {collectionSlug}
           </Link>
         </div>
         <h1 className="mt-2 text-xl font-semibold tracking-tight break-all">
           {objectKey.split("/").pop()}
         </h1>
-        <p className="text-muted-foreground mt-1 max-w-prose text-xs break-all">{objectKey}</p>
+        <p className="text-muted-foreground mt-1 max-w-prose text-xs break-all">
+          {objectKey}
+        </p>
       </div>
 
       {!isDotenv ? (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Editor</CardTitle>
-            <CardDescription>Content is encrypted with the server master key before leaving the app.</CardDescription>
+            <CardDescription>
+              Content is encrypted with the server master key before leaving the
+              app.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Textarea
@@ -154,7 +174,12 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
             >
               {remove.isPending ? "Deleting…" : "Delete"}
             </Button>
-            <Button type="button" size="sm" onClick={handleSave} disabled={save.isPending || remove.isPending}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSave}
+              disabled={save.isPending || remove.isPending}
+            >
               {save.isPending ? "Saving…" : "Save"}
             </Button>
           </CardFooter>
@@ -219,7 +244,9 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
                 onChange={(e) => setDraft(e.target.value)}
               />
             ) : keyEntries.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No variables in the current text.</p>
+              <p className="text-muted-foreground text-sm">
+                No variables in the current text.
+              </p>
             ) : (
               <Table>
                 <TableHeader>
@@ -232,13 +259,24 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
                 <TableBody>
                   {keyEntries.map((row, index) => (
                     <TableRow key={`${row.key}:${index}`}>
-                      <TableCell className="font-mono text-sm">{row.key}</TableCell>
+                      <TableCell className="font-mono text-sm">
+                        {row.key}
+                      </TableCell>
                       <TableCell>
-                        <Input readOnly className="font-mono text-xs" value={row.value} />
+                        <Input
+                          readOnly
+                          className="font-mono text-xs"
+                          value={row.value}
+                        />
                       </TableCell>
                       <TableCell className="whitespace-nowrap align-middle">
                         <div className="flex flex-nowrap items-center justify-end gap-2">
-                          <Button type="button" size="sm" variant="secondary" onClick={() => copyValue(row.key)}>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => copyValue(row.key)}
+                          >
                             Copy
                           </Button>
                           <Button
@@ -269,7 +307,12 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
             >
               {remove.isPending ? "Deleting…" : "Delete"}
             </Button>
-            <Button type="button" size="sm" onClick={handleSave} disabled={save.isPending || remove.isPending}>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSave}
+              disabled={save.isPending || remove.isPending}
+            >
               {save.isPending ? "Saving…" : "Save"}
             </Button>
           </CardFooter>

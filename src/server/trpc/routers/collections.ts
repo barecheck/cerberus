@@ -1,7 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
-import { assertValidCollectionSlug, collectionPrefix, getBucket, getRootPrefix } from "@/lib/paths";
+import {
+  assertValidCollectionSlug,
+  collectionPrefix,
+  getBucket,
+  getRootPrefix,
+} from "@/lib/paths";
 import { isEmailInAllowedDomain } from "@/lib/owners";
 import {
   copyObjectInBucket,
@@ -11,12 +16,22 @@ import {
   prefixHasAnyObject,
   putFolderPlaceholder,
 } from "@/lib/s3";
-import { canRenameOrDeleteCollection, loadCollectionAccessState } from "@/server/access/collections";
-import { createTRPCRouter, ownerProcedure, protectedProcedure } from "@/server/trpc/trpc";
+import {
+  canRenameOrDeleteCollection,
+  loadCollectionAccessState,
+} from "@/server/access/collections";
+import {
+  createTRPCRouter,
+  ownerProcedure,
+  protectedProcedure,
+} from "@/server/trpc/trpc";
 import { prisma } from "@/lib/prisma";
 
 const slugInput = z.object({
-  slug: z.string().transform((s) => s.trim()).pipe(z.string().min(1, "Name is required")),
+  slug: z
+    .string()
+    .transform((s) => s.trim())
+    .pipe(z.string().min(1, "Name is required")),
 });
 
 const domain = process.env.ALLOWED_EMAIL_DOMAIN?.trim().toLowerCase();
@@ -24,7 +39,10 @@ const domain = process.env.ALLOWED_EMAIL_DOMAIN?.trim().toLowerCase();
 async function findOrCreateUserForGrant(emailRaw: string) {
   const email = emailRaw.trim().toLowerCase();
   if (!isEmailInAllowedDomain(email)) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Email is not in the allowed domain" });
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Email is not in the allowed domain",
+    });
   }
   return prisma.user.upsert({
     where: { email },
@@ -64,17 +82,19 @@ async function getCollectionForOwnerGrants(slug: string) {
 }
 
 export const collectionsRouter = createTRPCRouter({
-  accessMeta: protectedProcedure.input(slugInput).query(async ({ ctx, input }) => {
-    const state = await loadCollectionAccessState({
-      userId: ctx.session.user.id,
-      email: ctx.session.user.email,
-      slug: input.slug,
-    });
-    return {
-      canManageAccess: ctx.session.user.isOwner,
-      canRenameDelete: canRenameOrDeleteCollection(state),
-    };
-  }),
+  accessMeta: protectedProcedure
+    .input(slugInput)
+    .query(async ({ ctx, input }) => {
+      const state = await loadCollectionAccessState({
+        userId: ctx.session.user.id,
+        email: ctx.session.user.email,
+        slug: input.slug,
+      });
+      return {
+        canManageAccess: ctx.session.user.isOwner,
+        canRenameDelete: canRenameOrDeleteCollection(state),
+      };
+    }),
 
   list: protectedProcedure.query(async ({ ctx }) => {
     getBucket();
@@ -97,7 +117,10 @@ export const collectionsRouter = createTRPCRouter({
 
     const rows = await prisma.collection.findMany({
       where: {
-        OR: [{ createdById: ctx.session.user.id }, { accessGrants: { some: { userId: ctx.session.user.id } } }],
+        OR: [
+          { createdById: ctx.session.user.id },
+          { accessGrants: { some: { userId: ctx.session.user.id } } },
+        ],
       },
       select: { slug: true },
     });
@@ -126,83 +149,109 @@ export const collectionsRouter = createTRPCRouter({
     return state.kind !== "none";
   }),
 
-  create: protectedProcedure.input(slugInput).mutation(async ({ ctx, input }) => {
-    assertValidCollectionSlug(input.slug);
-    getBucket();
-    const prefix = collectionPrefix(input.slug);
-    if (await prefixHasAnyObject(prefix)) {
-      throw new TRPCError({ code: "CONFLICT", message: "A collection with this name already exists" });
-    }
-
-    try {
-      await prisma.collection.create({
-        data: {
-          slug: input.slug,
-          createdById: ctx.session.user.id,
-        },
-      });
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+  create: protectedProcedure
+    .input(slugInput)
+    .mutation(async ({ ctx, input }) => {
+      assertValidCollectionSlug(input.slug);
+      getBucket();
+      const prefix = collectionPrefix(input.slug);
+      if (await prefixHasAnyObject(prefix)) {
         throw new TRPCError({
           code: "CONFLICT",
           message: "A collection with this name already exists",
         });
       }
-      throw e;
-    }
 
-    try {
-      await putFolderPlaceholder(prefix);
-    } catch (e) {
-      await prisma.collection.deleteMany({ where: { slug: input.slug } });
-      throw e;
-    }
+      try {
+        await prisma.collection.create({
+          data: {
+            slug: input.slug,
+            createdById: ctx.session.user.id,
+          },
+        });
+      } catch (e) {
+        if (
+          e instanceof Prisma.PrismaClientKnownRequestError &&
+          e.code === "P2002"
+        ) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "A collection with this name already exists",
+          });
+        }
+        throw e;
+      }
 
-    return { ok: true as const };
-  }),
+      try {
+        await putFolderPlaceholder(prefix);
+      } catch (e) {
+        await prisma.collection.deleteMany({ where: { slug: input.slug } });
+        throw e;
+      }
 
-  delete: protectedProcedure.input(slugInput).mutation(async ({ ctx, input }) => {
-    assertValidCollectionSlug(input.slug);
-    getBucket();
-    const state = await loadCollectionAccessState({
-      userId: ctx.session.user.id,
-      email: ctx.session.user.email,
-      slug: input.slug,
-    });
-    if (state.kind === "none") {
-      throw new TRPCError({ code: "FORBIDDEN", message: "No access to this collection" });
-    }
-    if (!canRenameOrDeleteCollection(state)) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "You cannot delete this collection with your current access scope",
+      return { ok: true as const };
+    }),
+
+  delete: protectedProcedure
+    .input(slugInput)
+    .mutation(async ({ ctx, input }) => {
+      assertValidCollectionSlug(input.slug);
+      getBucket();
+      const state = await loadCollectionAccessState({
+        userId: ctx.session.user.id,
+        email: ctx.session.user.email,
+        slug: input.slug,
       });
-    }
+      if (state.kind === "none") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "No access to this collection",
+        });
+      }
+      if (!canRenameOrDeleteCollection(state)) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "You cannot delete this collection with your current access scope",
+        });
+      }
 
-    const prefix = collectionPrefix(input.slug);
-    const keys = await listAllKeysUnderPrefix(prefix);
-    if (keys.length === 0) {
+      const prefix = collectionPrefix(input.slug);
+      const keys = await listAllKeysUnderPrefix(prefix);
+      if (keys.length === 0) {
+        await prisma.collection.deleteMany({ where: { slug: input.slug } });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Collection not found",
+        });
+      }
+
       await prisma.collection.deleteMany({ where: { slug: input.slug } });
-      throw new TRPCError({ code: "NOT_FOUND", message: "Collection not found" });
-    }
-
-    await prisma.collection.deleteMany({ where: { slug: input.slug } });
-    await deleteObjectsKeys(keys);
-    return { ok: true as const };
-  }),
+      await deleteObjectsKeys(keys);
+      return { ok: true as const };
+    }),
 
   rename: protectedProcedure
     .input(
       z.object({
-        fromSlug: z.string().transform((s) => s.trim()).pipe(z.string().min(1)),
-        toSlug: z.string().transform((s) => s.trim()).pipe(z.string().min(1)),
+        fromSlug: z
+          .string()
+          .transform((s) => s.trim())
+          .pipe(z.string().min(1)),
+        toSlug: z
+          .string()
+          .transform((s) => s.trim())
+          .pipe(z.string().min(1)),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       assertValidCollectionSlug(input.fromSlug);
       assertValidCollectionSlug(input.toSlug);
       if (input.fromSlug === input.toSlug) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "New name must be different" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "New name must be different",
+        });
       }
       getBucket();
 
@@ -212,12 +261,16 @@ export const collectionsRouter = createTRPCRouter({
         slug: input.fromSlug,
       });
       if (state.kind === "none") {
-        throw new TRPCError({ code: "FORBIDDEN", message: "No access to this collection" });
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "No access to this collection",
+        });
       }
       if (!canRenameOrDeleteCollection(state)) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "You cannot rename this collection with your current access scope",
+          message:
+            "You cannot rename this collection with your current access scope",
         });
       }
 
@@ -225,7 +278,10 @@ export const collectionsRouter = createTRPCRouter({
       const toPrefix = collectionPrefix(input.toSlug);
       const keys = await listAllKeysUnderPrefix(fromPrefix);
       if (keys.length === 0) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Collection not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Collection not found",
+        });
       }
       if (await prefixHasAnyObject(toPrefix)) {
         throw new TRPCError({
@@ -259,7 +315,10 @@ export const collectionsRouter = createTRPCRouter({
 
   listDomainUsers: ownerProcedure.query(async () => {
     if (!domain) {
-      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "ALLOWED_EMAIL_DOMAIN is not set" });
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "ALLOWED_EMAIL_DOMAIN is not set",
+      });
     }
     const suffix = `@${domain}`;
     const users = await prisma.user.findMany({

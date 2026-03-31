@@ -14,7 +14,13 @@ export function getBucket(): string {
 
 /** Collection folder must be a single path segment (no slashes, no ..). */
 export function assertValidCollectionSlug(slug: string) {
-  if (!slug || slug.includes("/") || slug.includes("..") || slug === "." || slug === "..") {
+  if (
+    !slug ||
+    slug.includes("/") ||
+    slug.includes("..") ||
+    slug === "." ||
+    slug === ".."
+  ) {
     throw new Error("Invalid collection");
   }
 }
@@ -35,14 +41,20 @@ export function collectionPrefix(collectionSlug: string): string {
   return `${getRootPrefix()}${collectionSlug}/`;
 }
 
-export function fullObjectKey(collectionSlug: string, relativePath: string): string {
+export function fullObjectKey(
+  collectionSlug: string,
+  relativePath: string,
+): string {
   assertValidCollectionSlug(collectionSlug);
   assertSafeRelativePath(relativePath);
   return `${getRootPrefix()}${collectionSlug}/${relativePath}`;
 }
 
 /** First path segment after root = collection slug; remainder = path within collection. */
-export function splitObjectKeyAfterRoot(objectKey: string): { slug: string; relativePath: string } {
+export function splitObjectKeyAfterRoot(objectKey: string): {
+  slug: string;
+  relativePath: string;
+} {
   assertKeyUnderRoot(objectKey);
   const root = getRootPrefix();
   const rest = root ? objectKey.slice(root.length) : objectKey;

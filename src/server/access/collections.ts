@@ -10,7 +10,9 @@ export type CollectionAccessState =
   | { kind: "grant" }
   | { kind: "none" };
 
-export function canRenameOrDeleteCollection(state: CollectionAccessState): boolean {
+export function canRenameOrDeleteCollection(
+  state: CollectionAccessState,
+): boolean {
   return state.kind !== "none";
 }
 
@@ -64,6 +66,9 @@ export async function userCanOpenVaultCollection(params: {
 
 export function assertRelativePathAllowed(state: CollectionAccessState): void {
   if (state.kind === "none") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "No access to this collection" });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "No access to this collection",
+    });
   }
 }

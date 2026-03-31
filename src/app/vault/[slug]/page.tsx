@@ -28,11 +28,14 @@ export default async function CollectionPage(props: Props) {
             <span>/</span>
             <span className="text-foreground">{slug}</span>
           </div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Secrets & files</h1>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+            Secrets & files
+          </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Objects are encrypted with AES-256-GCM before upload. Files ending in{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">.env</code> open in key/value
-            mode.
+            Objects are encrypted with AES-256-GCM before upload. Files ending
+            in{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">.env</code>{" "}
+            open in key/value mode.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

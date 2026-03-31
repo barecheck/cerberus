@@ -11,8 +11,8 @@ export default async function LoginPage() {
       <div className="max-w-md space-y-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Cerberus</h1>
         <p className="text-muted-foreground text-sm">
-          Sign in with your Google workspace account. Only emails on the configured domain are
-          allowed.
+          Sign in with your Google workspace account. Only emails on the
+          configured domain are allowed.
         </p>
       </div>
       <LoginClient />

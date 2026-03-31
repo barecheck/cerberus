@@ -14,7 +14,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET,
+      clientSecret:
+        process.env.AUTH_GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET,
     }),
   ],
   callbacks: {
@@ -44,7 +45,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         if (token.sub) session.user.id = token.sub;
         const email =
-          session.user.email ?? (typeof token.email === "string" ? token.email : undefined);
+          session.user.email ??
+          (typeof token.email === "string" ? token.email : undefined);
         session.user.isOwner = isOwnerEmail(email);
       }
       return session;

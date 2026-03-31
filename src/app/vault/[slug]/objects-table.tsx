@@ -13,9 +13,12 @@ import { encodeObjectKeyToken } from "@/lib/key-token";
 import { api } from "@/trpc/react";
 
 export function ObjectsTable({ collectionSlug }: { collectionSlug: string }) {
-  const { data, isLoading, error } = api.objects.list.useQuery({ collectionSlug });
+  const { data, isLoading, error } = api.objects.list.useQuery({
+    collectionSlug,
+  });
 
-  if (isLoading) return <p className="text-muted-foreground text-sm">Loading…</p>;
+  if (isLoading)
+    return <p className="text-muted-foreground text-sm">Loading…</p>;
   if (error) {
     return <p className="text-destructive text-sm">{error.message}</p>;
   }
@@ -33,7 +36,9 @@ export function ObjectsTable({ collectionSlug }: { collectionSlug: string }) {
         <TableRow>
           <TableHead>Path</TableHead>
           <TableHead className="hidden sm:table-cell">Type</TableHead>
-          <TableHead className="hidden md:table-cell text-right">Updated</TableHead>
+          <TableHead className="hidden md:table-cell text-right">
+            Updated
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -54,7 +59,10 @@ export function ObjectsTable({ collectionSlug }: { collectionSlug: string }) {
               </TableCell>
               <TableCell className="hidden md:table-cell text-right text-muted-foreground text-sm">
                 {row.lastModified
-                  ? row.lastModified.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
+                  ? row.lastModified.toLocaleString(undefined, {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })
                   : "—"}
               </TableCell>
             </TableRow>

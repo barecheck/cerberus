@@ -84,7 +84,10 @@ export function CollectionActions({ slug }: Props) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-[140px]">
           <DropdownMenuItem onClick={openRename}>Rename…</DropdownMenuItem>
-          <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => setDeleteOpen(true)}
+          >
             Delete…
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -112,7 +115,8 @@ export function CollectionActions({ slug }: Props) {
             <DialogHeader>
               <DialogTitle>Rename collection</DialogTitle>
               <DialogDescription>
-                Moves all objects in S3 from <code className="text-foreground">{slug}</code> to the new
+                Moves all objects in S3 from{" "}
+                <code className="text-foreground">{slug}</code> to the new
                 folder name. This can take a moment for large collections.
               </DialogDescription>
             </DialogHeader>
@@ -128,7 +132,11 @@ export function CollectionActions({ slug }: Props) {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setRenameOpen(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setRenameOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={rename.isPending}>
@@ -144,13 +152,18 @@ export function CollectionActions({ slug }: Props) {
           <DialogHeader>
             <DialogTitle>Delete collection</DialogTitle>
             <DialogDescription>
-              Permanently delete folder <code className="text-foreground">{slug}</code> and{' '}
-              <strong className="text-foreground">all encrypted files</strong> inside it from S3. This
-              cannot be undone.
+              Permanently delete folder{" "}
+              <code className="text-foreground">{slug}</code> and{" "}
+              <strong className="text-foreground">all encrypted files</strong>{" "}
+              inside it from S3. This cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="ghost" onClick={() => setDeleteOpen(false)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setDeleteOpen(false)}
+            >
               Cancel
             </Button>
             <Button

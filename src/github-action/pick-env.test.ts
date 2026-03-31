@@ -1,27 +1,44 @@
 import { describe, expect, it } from "vitest";
-import { normalizeHostname, parsePickList, resolveEnvAssignments } from "./pick-env";
+import {
+  normalizeHostname,
+  parsePickList,
+  resolveEnvAssignments,
+} from "./pick-env";
 
 describe("normalizeHostname", () => {
   it("adds https when missing", () => {
-    expect(normalizeHostname("vault.example.com")).toBe("https://vault.example.com");
+    expect(normalizeHostname("vault.example.com")).toBe(
+      "https://vault.example.com",
+    );
   });
 
   it("strips trailing slashes", () => {
-    expect(normalizeHostname("https://vault.example.com///")).toBe("https://vault.example.com");
+    expect(normalizeHostname("https://vault.example.com///")).toBe(
+      "https://vault.example.com",
+    );
   });
 });
 
 describe("parsePickList", () => {
   it("parses multiline keys", () => {
-    expect(parsePickList("API_KEY\nDATABASE_URL")).toEqual(["API_KEY", "DATABASE_URL"]);
+    expect(parsePickList("API_KEY\nDATABASE_URL")).toEqual([
+      "API_KEY",
+      "DATABASE_URL",
+    ]);
   });
 
   it("strips YAML-style list markers", () => {
-    expect(parsePickList("- API_KEY\n- DATABASE_URL")).toEqual(["API_KEY", "DATABASE_URL"]);
+    expect(parsePickList("- API_KEY\n- DATABASE_URL")).toEqual([
+      "API_KEY",
+      "DATABASE_URL",
+    ]);
   });
 
   it("parses comma-separated line", () => {
-    expect(parsePickList("API_KEY, DATABASE_URL")).toEqual(["API_KEY", "DATABASE_URL"]);
+    expect(parsePickList("API_KEY, DATABASE_URL")).toEqual([
+      "API_KEY",
+      "DATABASE_URL",
+    ]);
   });
 
   it("parses single token", () => {
@@ -30,7 +47,7 @@ describe("parsePickList", () => {
 });
 
 describe("resolveEnvAssignments", () => {
-  const envBody = "A=1\nB=two\n# c\nC=\"x\"\n";
+  const envBody = 'A=1\nB=two\n# c\nC="x"\n';
 
   it("dotenv + multiline pick", () => {
     const out = resolveEnvAssignments({

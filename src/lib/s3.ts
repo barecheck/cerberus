@@ -49,7 +49,9 @@ export async function prefixHasAnyObject(prefix: string): Promise<boolean> {
 }
 
 /** All object keys under `prefix` (including keys that end with `/`). */
-export async function listAllKeysUnderPrefix(prefix: string): Promise<string[]> {
+export async function listAllKeysUnderPrefix(
+  prefix: string,
+): Promise<string[]> {
   const client = s3Client();
   const keys: string[] = [];
   let ContinuationToken: string | undefined;
@@ -73,7 +75,11 @@ export async function listAllKeysUnderPrefix(prefix: string): Promise<string[]> 
 
 export async function listObjectsUnderPrefix(prefix: string) {
   const client = s3Client();
-  const keys: { key: string; size: number | undefined; lastModified: Date | undefined }[] = [];
+  const keys: {
+    key: string;
+    size: number | undefined;
+    lastModified: Date | undefined;
+  }[] = [];
   let ContinuationToken: string | undefined;
 
   do {
@@ -111,7 +117,11 @@ export async function getObjectBuffer(key: string): Promise<Buffer> {
   return Buffer.from(bytes);
 }
 
-export async function putObjectBuffer(key: string, body: Buffer, contentType = "application/octet-stream") {
+export async function putObjectBuffer(
+  key: string,
+  body: Buffer,
+  contentType = "application/octet-stream",
+) {
   const client = s3Client();
   await client.send(
     new PutObjectCommand({
@@ -128,7 +138,11 @@ export async function putFolderPlaceholder(keyEndingWithSlash: string) {
   if (!keyEndingWithSlash.endsWith("/")) {
     throw new Error("Folder placeholder key must end with /");
   }
-  await putObjectBuffer(keyEndingWithSlash, Buffer.alloc(0), "application/octet-stream");
+  await putObjectBuffer(
+    keyEndingWithSlash,
+    Buffer.alloc(0),
+    "application/octet-stream",
+  );
 }
 
 export async function copyObjectInBucket(sourceKey: string, destKey: string) {
@@ -161,7 +175,9 @@ export async function deleteObjectsKeys(keys: string[]) {
     );
     const errs = out.Errors ?? [];
     if (errs.length > 0) {
-      throw new Error(`S3 delete failed: ${errs.map((e) => e.Message ?? e.Key).join(", ")}`);
+      throw new Error(
+        `S3 delete failed: ${errs.map((e) => e.Message ?? e.Key).join(", ")}`,
+      );
     }
   }
 }

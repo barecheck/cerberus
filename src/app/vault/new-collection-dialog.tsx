@@ -50,8 +50,8 @@ export function NewCollectionDialog() {
             <DialogHeader>
               <DialogTitle>New collection</DialogTitle>
               <DialogDescription>
-                Creates a folder in S3 under your configured root prefix. Use a single path segment (no
-                slashes).
+                Creates a folder in S3 under your configured root prefix. Use a
+                single path segment (no slashes).
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -67,7 +67,11 @@ export function NewCollectionDialog() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={create.isPending}>

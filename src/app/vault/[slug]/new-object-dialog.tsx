@@ -17,7 +17,11 @@ import { encodeObjectKeyToken } from "@/lib/key-token";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
-export function NewObjectDialog({ collectionSlug }: { collectionSlug: string }) {
+export function NewObjectDialog({
+  collectionSlug,
+}: {
+  collectionSlug: string;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [relativePath, setRelativePath] = useState("");
@@ -31,7 +35,9 @@ export function NewObjectDialog({ collectionSlug }: { collectionSlug: string }) 
       setInitialContent("");
       await utils.objects.list.invalidate({ collectionSlug });
       const token = encodeObjectKeyToken(result.objectKey);
-      router.push(`/vault/${encodeURIComponent(collectionSlug)}/file/${encodeURIComponent(token)}`);
+      router.push(
+        `/vault/${encodeURIComponent(collectionSlug)}/file/${encodeURIComponent(token)}`,
+      );
     },
     onError: (e) => toast.error(e.message),
   });
@@ -61,8 +67,8 @@ export function NewObjectDialog({ collectionSlug }: { collectionSlug: string }) 
             <DialogHeader>
               <DialogTitle>New encrypted file</DialogTitle>
               <DialogDescription>
-                Path is relative to the collection folder. Use a <code>.env</code> suffix for key/value
-                editing.
+                Path is relative to the collection folder. Use a{" "}
+                <code>.env</code> suffix for key/value editing.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -80,14 +86,22 @@ export function NewObjectDialog({ collectionSlug }: { collectionSlug: string }) 
                 <Label htmlFor="body">Initial content (optional)</Label>
                 <Input
                   id="body"
-                  placeholder={relativePath.endsWith(".env") ? "API_KEY=..." : "paste text…"}
+                  placeholder={
+                    relativePath.endsWith(".env")
+                      ? "API_KEY=..."
+                      : "paste text…"
+                  }
                   value={initialContent}
                   onChange={(ev) => setInitialContent(ev.target.value)}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={create.isPending}>

@@ -2,19 +2,32 @@ import { TRPCError } from "@trpc/server";
 import { loadCollectionAccessState } from "@/server/access/collections";
 import { isOwnerEmail } from "@/lib/owners";
 import { prisma } from "@/lib/prisma";
-import type { AccessToken, AccessTokenCollection } from "@/generated/prisma/client";
+import type {
+  AccessToken,
+  AccessTokenCollection,
+} from "@/generated/prisma/client";
 
 export type AccessTokenWithCollections = AccessToken & {
-  collections: (AccessTokenCollection & { collection: { id: string; slug: string } })[];
+  collections: (AccessTokenCollection & {
+    collection: { id: string; slug: string };
+  })[];
 };
 
-async function userHasCollectionAccess(userId: string, email: string | null | undefined, collectionId: string) {
+async function userHasCollectionAccess(
+  userId: string,
+  email: string | null | undefined,
+  collectionId: string,
+) {
   const coll = await prisma.collection.findUnique({
     where: { id: collectionId },
     select: { slug: true },
   });
   if (!coll) return false;
-  const state = await loadCollectionAccessState({ userId, email, slug: coll.slug });
+  const state = await loadCollectionAccessState({
+    userId,
+    email,
+    slug: coll.slug,
+  });
   return state.kind !== "none";
 }
 
@@ -24,9 +37,16 @@ export async function assertCanCreateAccessToken(params: {
   collectionIds: string[];
 }): Promise<void> {
   for (const collectionId of params.collectionIds) {
-    const ok = await userHasCollectionAccess(params.userId, params.email, collectionId);
+    const ok = await userHasCollectionAccess(
+      params.userId,
+      params.email,
+      collectionId,
+    );
     if (!ok) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "No access to one or more collections" });
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "No access to one or more collections",
+      });
     }
   }
 }
@@ -39,7 +59,10 @@ export async function assertCanRevokeOrRevealAccessToken(params: {
   const isCreator = params.token.createdById === params.userId;
   const owner = isOwnerEmail(params.email);
   if (!isCreator && !owner) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Only the token creator or an owner can do this" });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Only the token creator or an owner can do this",
+    });
   }
 }
 
@@ -51,7 +74,9 @@ export async function listAccessTokensForUser(
 ): Promise<AccessTokenWithCollections[]> {
   const tokens = await prisma.accessToken.findMany({
     include: {
-      collections: { include: { collection: { select: { id: true, slug: true } } } },
+      collections: {
+        include: { collection: { select: { id: true, slug: true } } },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -74,7 +99,9 @@ export async function listAccessTokensForUser(
     if (!anyAccess) continue;
 
     if (collectionSlugFilter) {
-      const applies = token.collections.some((b) => b.collection.slug === collectionSlugFilter);
+      const applies = token.collections.some(
+        (b) => b.collection.slug === collectionSlugFilter,
+      );
       if (!applies) continue;
     }
 
