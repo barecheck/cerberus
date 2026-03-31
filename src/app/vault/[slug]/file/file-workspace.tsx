@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { parseDotenv, removeDotenvKey } from "@/lib/dotenv-parse";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -45,19 +46,14 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
     [data, objectKey],
   );
 
-  const secretsQuery = api.secrets.parse.useQuery(
-    { objectKey },
-    { enabled: !!data && !!isDotenv && mode === "keys" },
-  );
-
   const text = draft ?? data?.plaintext ?? "";
+  const keyEntries = useMemo(() => (isDotenv ? parseDotenv(text) : []), [isDotenv, text]);
   const utils = api.useUtils();
   const save = api.objects.put.useMutation({
     onSuccess: async () => {
       toast.success("Saved");
       setDraft(undefined);
       await utils.objects.get.invalidate({ objectKey });
-      if (isDotenv) await utils.secrets.parse.invalidate({ objectKey });
       refetch();
     },
     onError: (e) => toast.error(e.message),
@@ -96,6 +92,11 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
     } catch {
       toast.error("Could not copy value");
     }
+  };
+
+  const removeKey = (secretKey: string) => {
+    if (!confirm(`Remove "${secretKey}" from this file? Save to persist the change.`)) return;
+    setDraft(removeDotenvKey(text, secretKey));
   };
 
   if (isLoading) {
@@ -217,30 +218,40 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
                 value={text}
                 onChange={(e) => setDraft(e.target.value)}
               />
-            ) : secretsQuery.isLoading ? (
-              <p className="text-muted-foreground text-sm">Parsing…</p>
-            ) : secretsQuery.error ? (
-              <p className="text-destructive text-sm">{secretsQuery.error.message}</p>
+            ) : keyEntries.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No variables in the current text.</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Key</TableHead>
                     <TableHead>Value</TableHead>
-                    <TableHead className="w-[100px]" />
+                    <TableHead className="w-[1%] whitespace-nowrap" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(secretsQuery.data?.entries ?? []).map((row) => (
-                    <TableRow key={row.key}>
+                  {keyEntries.map((row, index) => (
+                    <TableRow key={`${row.key}:${index}`}>
                       <TableCell className="font-mono text-sm">{row.key}</TableCell>
                       <TableCell>
                         <Input readOnly className="font-mono text-xs" value={row.value} />
                       </TableCell>
-                      <TableCell>
-                        <Button type="button" size="sm" variant="secondary" onClick={() => copyValue(row.key)}>
-                          Copy
-                        </Button>
+                      <TableCell className="whitespace-nowrap align-middle">
+                        <div className="flex flex-nowrap items-center justify-end gap-2">
+                          <Button type="button" size="sm" variant="secondary" onClick={() => copyValue(row.key)}>
+                            Copy
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                            onClick={() => removeKey(row.key)}
+                            disabled={save.isPending || remove.isPending}
+                          >
+                            Remove
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
