@@ -40,3 +40,51 @@ export function removeDotenvKey(content: string, key: string): string {
   });
   return filtered.join("\n");
 }
+
+function formatDotenvLine(key: string, value: string): string {
+  const needsQuotes =
+    /[\s#"']/.test(value) ||
+    (value.length > 0 && value !== value.trim());
+  const encoded = needsQuotes
+    ? `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
+    : value;
+  return `${key}=${encoded}`;
+}
+
+export type AppendDotenvKeyResult =
+  | { ok: true; content: string }
+  | { ok: false; error: string };
+
+/** Appends `KEY=value` at the end (preserves existing lines). Rejects duplicate keys {@link parseDotenv} would surface. */
+export function appendDotenvKey(
+  content: string,
+  key: string,
+  value: string,
+): AppendDotenvKeyResult {
+  const k = key.trim();
+  if (!k) {
+    return { ok: false, error: "Enter a variable name" };
+  }
+  if (k.includes("=")) {
+    return { ok: false, error: "Key cannot contain \"=\"" };
+  }
+  if (k.startsWith("#")) {
+    return { ok: false, error: "Key cannot start with #" };
+  }
+  if (/\r|\n/.test(k)) {
+    return { ok: false, error: "Key cannot span lines" };
+  }
+  if (/\r|\n/.test(value)) {
+    return { ok: false, error: "Value cannot contain line breaks" };
+  }
+
+  const entries = parseDotenv(content);
+  if (entries.some((e) => e.key === k)) {
+    return { ok: false, error: `"${k}" is already defined` };
+  }
+
+  const line = formatDotenvLine(k, value);
+  const trimmedEnd = content.replace(/\s+$/, "");
+  const next = trimmedEnd === "" ? line : `${trimmedEnd}\n${line}`;
+  return { ok: true, content: next };
+}

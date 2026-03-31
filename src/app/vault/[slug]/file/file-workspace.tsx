@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { parseDotenv, removeDotenvKey } from "@/lib/dotenv-parse";
+import {
+  appendDotenvKey,
+  parseDotenv,
+  removeDotenvKey,
+} from "@/lib/dotenv-parse";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -42,6 +47,8 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
   });
   const [draft, setDraft] = useState<string | undefined>(undefined);
   const [mode, setMode] = useState<"raw" | "keys">("raw");
+  const [newKey, setNewKey] = useState("");
+  const [newValue, setNewValue] = useState("");
 
   const isDotenv = useMemo(
     () => data?.isDotenv ?? objectKey.split("/").pop()?.endsWith(".env"),
@@ -107,6 +114,17 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
     )
       return;
     setDraft(removeDotenvKey(text, secretKey));
+  };
+
+  const addKey = () => {
+    const result = appendDotenvKey(text, newKey, newValue);
+    if (!result.ok) {
+      toast.error(result.error);
+      return;
+    }
+    setDraft(result.content);
+    setNewKey("");
+    setNewValue("");
   };
 
   if (isLoading) {
@@ -192,7 +210,7 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
             </CardTitle>
             <CardDescription>
               {mode === "keys"
-                ? "Parsed from decrypted content. Edit raw text to change keys."
+                ? "Add variables below or remove rows; switch to Raw to edit names or comments. Save to persist."
                 : "Content is encrypted with the server master key before leaving the app."}
             </CardDescription>
             <CardAction>
@@ -243,58 +261,104 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
                 value={text}
                 onChange={(e) => setDraft(e.target.value)}
               />
-            ) : keyEntries.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                No variables in the current text.
-              </p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Key</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead className="w-[1%] whitespace-nowrap" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {keyEntries.map((row, index) => (
-                    <TableRow key={`${row.key}:${index}`}>
-                      <TableCell className="font-mono text-sm">
-                        {row.key}
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          readOnly
-                          className="font-mono text-xs"
-                          value={row.value}
-                        />
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap align-middle">
-                        <div className="flex flex-nowrap items-center justify-end gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => copyValue(row.key)}
-                          >
-                            Copy
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() => removeKey(row.key)}
-                            disabled={save.isPending || remove.isPending}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-6">
+                <form
+                  className="rounded-lg border bg-muted/20 p-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    addKey();
+                  }}
+                >
+                  <p className="mb-3 text-sm font-medium">Add variable</p>
+                  <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                    <div className="space-y-2">
+                      <Label htmlFor="dotenv-new-key">Key</Label>
+                      <Input
+                        id="dotenv-new-key"
+                        className="font-mono text-sm"
+                        placeholder="API_KEY"
+                        value={newKey}
+                        onChange={(e) => setNewKey(e.target.value)}
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="dotenv-new-value">Value</Label>
+                      <Input
+                        id="dotenv-new-value"
+                        type="password"
+                        className="font-mono text-sm"
+                        placeholder="secret"
+                        value={newValue}
+                        onChange={(e) => setNewValue(e.target.value)}
+                        autoComplete="off"
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="w-full sm:w-auto"
+                      disabled={save.isPending || remove.isPending}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                </form>
+                {keyEntries.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">
+                    No variables in the current text yet.
+                  </p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Key</TableHead>
+                        <TableHead>Value</TableHead>
+                        <TableHead className="w-[1%] whitespace-nowrap" />
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {keyEntries.map((row, index) => (
+                        <TableRow key={`${row.key}:${index}`}>
+                          <TableCell className="font-mono text-sm">
+                            {row.key}
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              readOnly
+                              className="font-mono text-xs"
+                              value={row.value}
+                            />
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap align-middle">
+                            <div className="flex flex-nowrap items-center justify-end gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => copyValue(row.key)}
+                              >
+                                Copy
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => removeKey(row.key)}
+                                disabled={save.isPending || remove.isPending}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
             )}
           </CardContent>
           <CardFooter className="flex flex-wrap justify-end gap-2">
