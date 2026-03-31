@@ -28,9 +28,9 @@ Full documentation lives in [`docs/`](docs/):
 
 ## GitHub Action
 
-Pull decrypted files or `.env` keys in workflows using the action in this repo. Create an **access token** in the collection’s **Access tokens** dialog, add it as a repository secret (for example `CERBERUS_TOKEN`). The `secret` input is always `collection-slug/path/under/collection` (same path you see in the vault, not the raw S3 key).
+Pull decrypted files or `.env` keys in workflows using the composite action from **[barecheck/cerberus](https://github.com/barecheck/cerberus)** (`uses: barecheck/cerberus@v1` or another ref/tag you pin). Create an **access token** in the collection’s **Access tokens** dialog, add it as a repository secret (for example `CERBERUS_TOKEN`). The `secret` input is always `collection-slug/path/under/collection` (same path you see in the vault, not the raw S3 key).
 
-Examples use `uses: ./` after a checkout of this repository; for a published composite action, replace with `uses: your-org/cerberus@v1` (or the path that hosts `action.yml` and `dist/github-action`).
+Workflows below use `uses: barecheck/cerberus@v1`; use a branch or SHA (for example `@main`) if you are not tagging releases yet.
 
 **Export a file** (`mode: export`, default): writes decrypted content to `output-path`.
 
@@ -41,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./
+      - uses: barecheck/cerberus@v1
         with:
           hostname: https://vault.example.com
           api-key: ${{ secrets.CERBERUS_TOKEN }}
@@ -61,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./
+      - uses: barecheck/cerberus@v1
         with:
           hostname: https://vault.example.com
           api-key: ${{ secrets.CERBERUS_TOKEN }}
@@ -79,7 +79,7 @@ jobs:
 For a **non-`.env` file**, `pick` must be a **single** name; the file contents are exported as `env_prefix` + that name.
 
 ```yaml
-      - uses: ./
+      - uses: barecheck/cerberus@v1
         with:
           hostname: https://vault.example.com
           api-key: ${{ secrets.CERBERUS_TOKEN }}
@@ -89,7 +89,7 @@ For a **non-`.env` file**, `pick` must be a **single** name; the file contents a
           pick: CA_BUNDLE
 ```
 
-Build the bundled entrypoint after changing action source: `npm run build:github-action`.
+If you develop the action from a clone of [barecheck/cerberus](https://github.com/barecheck/cerberus), rebuild the bundled entrypoint after changing action source: `npm run build:github-action`.
 
 ## Prerequisites
 
