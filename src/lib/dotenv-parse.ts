@@ -43,8 +43,7 @@ export function removeDotenvKey(content: string, key: string): string {
 
 function formatDotenvLine(key: string, value: string): string {
   const needsQuotes =
-    /[\s#"']/.test(value) ||
-    (value.length > 0 && value !== value.trim());
+    /[\s#"']/.test(value) || (value.length > 0 && value !== value.trim());
   const encoded = needsQuotes
     ? `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
     : value;
@@ -66,7 +65,7 @@ export function appendDotenvKey(
     return { ok: false, error: "Enter a variable name" };
   }
   if (k.includes("=")) {
-    return { ok: false, error: "Key cannot contain \"=\"" };
+    return { ok: false, error: 'Key cannot contain "="' };
   }
   if (k.startsWith("#")) {
     return { ok: false, error: "Key cannot start with #" };
