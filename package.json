@@ -16,7 +16,8 @@
     "db:migrate": "prisma migrate deploy",
     "db:push": "prisma db push",
     "pull-secret": "node scripts/pull-secret.mjs",
-    "build:github-action": "ncc build src/github-action/index.ts -o dist/github-action --source-map --license licenses.txt"
+    "build:github-action": "ncc build src/github-action/index.ts -o dist/github-action --source-map --license licenses.txt",
+    "prepare": "husky"
   },
   "bin": {
     "cerberus-pull-secret": "./scripts/pull-secret.mjs"
@@ -59,10 +60,19 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
     "prisma": "^7.6.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.2"
+  },
+  "lint-staged": {
+    "*.{js,jsx,mjs,cjs,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,scss,yml,yaml}": "prettier --write"
   }
 }
