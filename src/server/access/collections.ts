@@ -13,7 +13,7 @@ export type CollectionAccessState =
 export function canRenameOrDeleteCollection(
   state: CollectionAccessState,
 ): boolean {
-  return state.kind !== "none";
+  return state.kind === "owner" || state.kind === "creator";
 }
 
 export async function loadCollectionAccessState(params: {
