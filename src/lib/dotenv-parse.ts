@@ -41,6 +41,30 @@ export function removeDotenvKey(content: string, key: string): string {
   return filtered.join("\n");
 }
 
+/**
+ * Removes exactly one parsed dotenv entry by its parse order index.
+ * Preserves all non-entry lines and other duplicate keys.
+ */
+export function removeDotenvEntryAt(
+  content: string,
+  entryIndex: number,
+): string {
+  if (!Number.isInteger(entryIndex) || entryIndex < 0) return content;
+  const lines = content.split(/\r?\n/);
+  let seen = 0;
+  const filtered = lines.filter((line) => {
+    const entry = tryParseDotenvLine(line);
+    if (!entry) return true;
+    if (seen === entryIndex) {
+      seen += 1;
+      return false;
+    }
+    seen += 1;
+    return true;
+  });
+  return filtered.join("\n");
+}
+
 function formatDotenvLine(key: string, value: string): string {
   const needsQuotes =
     /[\s#"']/.test(value) || (value.length > 0 && value !== value.trim());

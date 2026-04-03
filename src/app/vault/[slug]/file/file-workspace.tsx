@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import {
   appendDotenvKey,
   parseDotenv,
-  removeDotenvKey,
+  removeDotenvEntryAt,
 } from "@/lib/dotenv-parse";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -106,14 +106,14 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
     }
   };
 
-  const removeKey = (secretKey: string) => {
+  const removeKey = (secretKey: string, entryIndex: number) => {
     if (
       !confirm(
         `Remove "${secretKey}" from this file? Save to persist the change.`,
       )
     )
       return;
-    setDraft(removeDotenvKey(text, secretKey));
+    setDraft(removeDotenvEntryAt(text, entryIndex));
   };
 
   const addKey = () => {
@@ -346,7 +346,7 @@ function FileWorkspaceInner({ collectionSlug, objectKey }: Props) {
                                 size="sm"
                                 variant="outline"
                                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                onClick={() => removeKey(row.key)}
+                                onClick={() => removeKey(row.key, index)}
                                 disabled={save.isPending || remove.isPending}
                               >
                                 Remove
