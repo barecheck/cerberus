@@ -9,6 +9,7 @@ import {
   getBucket,
 } from "@/lib/paths";
 import { getObjectBuffer } from "@/lib/s3";
+import { loadCollectionAccessState } from "@/server/access/collections";
 
 function parseBearer(req: NextRequest): string | null {
   const h = req.headers.get("authorization");
@@ -77,7 +78,12 @@ export async function GET(req: NextRequest) {
 
   const row = await prisma.accessToken.findUnique({
     where: { tokenLookup },
-    include: { collections: true },
+    include: {
+      collections: true,
+      createdBy: {
+        select: { id: true, email: true },
+      },
+    },
   });
 
   if (!row) {
@@ -95,6 +101,15 @@ export async function GET(req: NextRequest) {
 
   const allowed = row.collections.some((c) => c.collectionId === collection.id);
   if (!allowed) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const creatorState = await loadCollectionAccessState({
+    userId: row.createdBy.id,
+    email: row.createdBy.email,
+    slug,
+  });
+  if (creatorState.kind === "none") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
