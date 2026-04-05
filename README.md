@@ -91,6 +91,10 @@ For a **non-`.env` file**, `pick` must be a **single** name; the file contents a
 
 If you develop the action from a clone of [barecheck/cerberus](https://github.com/barecheck/cerberus), rebuild the bundled entrypoint after changing action source: `npm run build:github-action`.
 
+### CI HTTP endpoint (custom integrations)
+
+The composite action calls **`GET {hostname}/api/ci/file?secret={collection}/{relative/path}`** with header **`Authorization: Bearer <token>`**. On success the body is JSON `{ "content": "<decrypted file string>" }`. The token must be allowed for the **collection** (first path segment); `secret` must include a non-empty path after that segment. Typical failures: `401` (missing/invalid bearer), `403` (token not scoped to that collection), `404` (unknown collection, missing object, or decrypt error — intentionally vague). Implementation: [`src/app/api/ci/file/route.ts`](src/app/api/ci/file/route.ts).
+
 ## Prerequisites
 
 - Node.js 20+

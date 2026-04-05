@@ -39,6 +39,12 @@ The CLI ([`scripts/pull-secret.mjs`](../scripts/pull-secret.mjs)) implements the
 
 There is no separate per-key storage in S3: “line items” are a **view** over the decrypted file.
 
+### Keys view: add, remove, save
+
+In [`src/app/vault/[slug]/file/file-workspace.tsx`](../src/app/vault/[slug]/file/file-workspace.tsx), **Add** appends a new `KEY=value` line using [`appendDotenvKey`](../src/lib/dotenv-parse.ts): duplicate keys (as the parser would see them), keys containing `=`, keys starting with `#`, and values containing line breaks are rejected. **Remove** strips every line the parser would attribute to that key via [`removeDotenvKey`](../src/lib/dotenv-parse.ts) (comments and blank lines stay). Changes live in a **draft** until **Save** runs `objects.put` and overwrites the whole object in S3.
+
+**Copy** uses `secrets.getValue` (server-side decrypt + parse) so the clipboard gets the value only, not surrounding file text.
+
 ## Security notes
 
 - S3 at-rest encryption (SSE-S3 or SSE-KMS) is recommended in addition to application-layer encryption.
