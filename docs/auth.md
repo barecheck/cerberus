@@ -2,7 +2,7 @@
 
 ## Provider
 
-Cerberus uses **Google** OAuth via [Auth.js v5](https://authjs.dev/) (`next-auth` beta) and the [Prisma adapter](https://authjs.dev/getting-started/adapters/prisma).
+Cerberus uses **Google** OAuth via [Auth.js v5](https://authjs.dev/) (`next-auth` beta). The app uses a **JWT session strategy** (no Auth.js `Session` / `Account` tables in Prisma).
 
 ## Routes
 
@@ -23,9 +23,12 @@ user.email.toLowerCase().endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)
 
 Set `ALLOWED_EMAIL_DOMAIN` to your workspace domain (e.g. `acme.com`). Subdomains are **not** treated specially: `user@mail.acme.com` matches `acme.com`; adjust the callback if you need `endsWith` behavior for exact host parts only.
 
-## Sessions
+## Sessions and database users
 
-Sessions are stored in PostgreSQL (`Session` model) because the Prisma adapter is enabled. Protected tRPC procedures require `ctx.session.user` from `auth()`.
+- **Sessions**: JWT cookies. `auth()` resolves `session.user.id` and `session.user.isOwner` without reading a session table.
+- **Users**: On first sign-in, [`src/auth.ts`](../src/auth.ts) **upserts** a row in PostgreSQL (`users`) so vault ACLs and access tokens can reference stable user IDs.
+
+Protected tRPC procedures require `ctx.session.user` from `auth()`.
 
 ## Vault route protection
 
