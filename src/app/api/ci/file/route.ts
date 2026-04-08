@@ -9,6 +9,7 @@ import {
   getBucket,
 } from "@/lib/paths";
 import { getObjectBuffer } from "@/lib/s3";
+import { tokenCreatorHasCollectionAccess } from "@/server/access/access-token-runtime";
 
 function parseBearer(req: NextRequest): string | null {
   const h = req.headers.get("authorization");
@@ -77,7 +78,12 @@ export async function GET(req: NextRequest) {
 
   const row = await prisma.accessToken.findUnique({
     where: { tokenLookup },
-    include: { collections: true },
+    include: {
+      collections: true,
+      createdBy: {
+        select: { email: true },
+      },
+    },
   });
 
   if (!row) {
@@ -86,7 +92,14 @@ export async function GET(req: NextRequest) {
 
   const collection = await prisma.collection.findUnique({
     where: { slug },
-    select: { id: true },
+    select: {
+      id: true,
+      createdById: true,
+      accessGrants: {
+        where: { userId: row.createdById },
+        select: { userId: true },
+      },
+    },
   });
 
   if (!collection) {
@@ -96,6 +109,15 @@ export async function GET(req: NextRequest) {
   const allowed = row.collections.some((c) => c.collectionId === collection.id);
   if (!allowed) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const creatorHasAccess = tokenCreatorHasCollectionAccess({
+    creatorUserId: row.createdById,
+    creatorEmail: row.createdBy.email,
+    collectionCreatedById: collection.createdById,
+    hasDirectGrant: collection.accessGrants.length > 0,
+  });
+  if (!creatorHasAccess) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const objectKey = fullObjectKey(slug, relativePath);
