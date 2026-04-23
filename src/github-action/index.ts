@@ -69,6 +69,7 @@ async function run(): Promise<void> {
   const githubEnv = process.env.GITHUB_ENV;
 
   for (const [envName, value] of Object.entries(assignments)) {
+    core.setSecret(value);
     core.exportVariable(envName, value);
     if (githubEnv) {
       await appendGithubEnvVar(githubEnv, envName, value);

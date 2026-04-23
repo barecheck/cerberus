@@ -30775,7 +30775,7 @@ function exportVariable(name, val) {
  * ```
  */
 function core_setSecret(secret) {
-    issueCommand('add-mask', {}, secret);
+    command_issueCommand('add-mask', {}, secret);
 }
 /**
  * Prepends inputPath to the PATH (for this action and future actions)
@@ -31191,6 +31191,7 @@ async function run() {
     });
     const githubEnv = process.env.GITHUB_ENV;
     for (const [envName, value] of Object.entries(assignments)) {
+        core_setSecret(value);
         exportVariable(envName, value);
         if (githubEnv) {
             await appendGithubEnvVar(githubEnv, envName, value);
